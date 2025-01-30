@@ -1,0 +1,114 @@
+import React, { useState } from "react";
+import { View, Text, TextInput, Button, FlatList, SafeAreaView } from "react-native";
+import axios from "axios";
+import firebase from "./firebaseConfig";
+
+const MindMate = () => {
+  const [message, setMessage] = useState("");
+  const [chat, setChat] = useState([]);
+
+  const sendMessage = async () => {
+    if (!message.trim()) return;
+    setChat([...chat, { role: "user", content: message }]);
+    setMessage("");
+    try {
+      const response = await axios.post("https://api.openai.com/v1/chat/completions", {
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "system", content: "You are a friendly AI therapist." }, ...chat, { role: "user", content: message }],
+      }, {
+        headers: { "Authorization": `Bearer YOUR_OPENAI_API_KEY` }
+      });
+      setChat([...chat, { role: "assistant", content: response.data.choices[0].message.content }]);
+    } catch (error) {
+      console.error("Error fetching AI response:", error);
+    }
+  };
+
+  return (
+    <SafeAreaView style={{ flex: 1, padding: 20 }}>
+      <FlatList
+        data={chat}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => <Text>{item.role === "user" ? "👤" : "🤖"}: {item.content}</Text>}
+      />
+      <TextInput
+        value={message}
+        onChangeText={setMessage}
+        placeholder="Talk to MindMate..."
+        style={{ borderWidth: 1, padding: 10, marginVertical: 10 }}
+      />
+      <Button title="Send" onPress={sendMessage} />
+    </SafeAreaView>
+  );
+};
+
+export default MindMate;
+// React Frontend: mental-wellness-app
+
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import Chatbot from './Chatbot';
+import MoodTracker from './MoodTracker';
+import Journal from './Journal';
+import Meditation from './Meditation';
+import VideoTherapy from './VideoTherapy';
+
+function App() {
+  return (
+    <Router>
+      <div className="app">
+        <nav>
+          <Link to="/chat">Chat</Link>
+          <Link to="/mood">Mood Tracker</Link>
+          <Link to="/journal">Journal</Link>
+          <Link to="/meditation">Meditation</Link>
+          <Link to="/therapy">Therapy</Link>
+        </nav>
+        <Routes>
+          <Route path="/chat" element={<Chatbot />} />
+          <Route path="/mood" element={<MoodTracker />} />
+          <Route path="/journal" element={<Journal />} />
+          <Route path="/meditation" element={<Meditation />} />
+          <Route path="/therapy" element={<VideoTherapy />} />
+        </Routes>
+      </div>
+    </Router>
+  );
+}
+
+export default App;
+import React, { useState } from "react";
+import Chatbot from "./components/Chatbot";
+import MoodTracker from "./components/MoodTracker";
+import Journal from "./components/Journal";
+import Meditation from "./components/Meditation";
+import VideoTherapy from "./components/VideoTherapy";
+
+function App() {
+  const [selectedFeature, setSelectedFeature] = useState("chatbot");
+
+  return (
+    <div className="min-h-screen bg-gray-100 p-6">
+      <h1 className="text-3xl font-bold text-center text-blue-600 mb-4">Mental Wellness & AI Support</h1>
+      
+      <div className="flex justify-center space-x-4 mb-6">
+        <button onClick={() => setSelectedFeature("chatbot")} className="btn">Chatbot</button>
+        <button onClick={() => setSelectedFeature("mood") } className="btn">Mood Tracker</button>
+        <button onClick={() => setSelectedFeature("journal")} className="btn">Journal</button>
+        <button onClick={() => setSelectedFeature("meditation")} className="btn">Meditation</button>
+        <button onClick={() => setSelectedFeature("video") } className="btn">Video Therapy</button>
+      </div>
+      
+      <div className="bg-white p-6 rounded shadow-md">
+        {selectedFeature === "chatbot" && <Chatbot />}
+        {selectedFeature === "mood" && <MoodTracker />}
+        {selectedFeature === "journal" && <Journal />}
+        {selectedFeature === "meditation" && <Meditation />}
+        {selectedFeature === "video" && <VideoTherapy />}
+      </div>
+    </div>
+  );
+}
+
+export default App;
+
